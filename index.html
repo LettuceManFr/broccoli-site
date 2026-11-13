@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Broccoli Client</title>
+<meta name="description" content="Broccoli Client — a browser Minecraft client by LettuceManfr. Green, fast, and built for Unseen SMP.">
+<link rel="icon" href="logo.png">
+<style>
+  :root {
+    --accent: #7be05a; --accent-deep: #3fa836; --text: #f2faee; --muted: #a9c89e;
+    --panel: rgba(16, 36, 20, .72); --edge: rgba(123, 224, 90, .28); --bg: #081109;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font: 16px/1.6 "Segoe UI", system-ui, -apple-system, Roboto, sans-serif; color: var(--text); background: var(--bg); overflow-x: hidden; }
+  a { color: inherit; }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 0 24px; }
+
+  /* top bar */
+  header { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(10px); background: rgba(8, 17, 9, .7); border-bottom: 1px solid rgba(123, 224, 90, .14); }
+  .bar { display: flex; align-items: center; gap: 12px; height: 62px; }
+  .bar img { width: 32px; height: 32px; image-rendering: pixelated; }
+  .bar b { font-size: 18px; letter-spacing: .02em; }
+  .bar nav { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+  .bar nav a { padding: 8px 14px; border-radius: 10px; color: var(--muted); text-decoration: none; font-weight: 600; font-size: 14px; transition: .18s; }
+  .bar nav a:hover { color: var(--text); background: rgba(255, 255, 255, .06); }
+  .bar nav a.cta { color: #081c0a; background: linear-gradient(var(--accent), var(--accent-deep)); }
+
+  /* hero */
+  .hero { position: relative; min-height: 86vh; display: grid; place-items: center; text-align: center; overflow: hidden; }
+  .hero .bg { position: absolute; inset: 0; background: url(backdrop.png) center/cover; transform: scale(1.05); }
+  .hero .bg::after { content: ""; position: absolute; inset: 0; background: radial-gradient(120% 90% at 50% 10%, rgba(8, 17, 9, .3), rgba(8, 17, 9, .78) 60%, var(--bg)); }
+  .hero .inner { position: relative; padding: 110px 24px; animation: rise .8s ease-out; }
+  @keyframes rise { from { opacity: 0; transform: translateY(24px); } }
+  .hero img { width: 120px; height: 120px; image-rendering: pixelated; filter: drop-shadow(0 0 40px rgba(123, 224, 90, .6)); }
+  .hero h1 { font-size: clamp(44px, 9vw, 92px); line-height: 1; letter-spacing: -.02em; margin: 18px 0 10px; }
+  .hero h1 span { color: var(--accent); text-shadow: 0 0 40px rgba(123, 224, 90, .5); }
+  .hero p { font-size: clamp(16px, 2.4vw, 21px); color: var(--muted); max-width: 30ch; margin: 0 auto 30px; }
+  .buttons { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .btn { display: inline-flex; align-items: center; gap: 9px; padding: 15px 30px; border-radius: 14px; font-weight: 700; font-size: 16px; text-decoration: none; border: 1px solid rgba(255, 255, 255, .2); color: var(--text); background: rgba(255, 255, 255, .07); transition: transform .15s, box-shadow .15s, border-color .15s; }
+  .btn:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .btn.main { border: 0; color: #081c0a; background: linear-gradient(var(--accent), var(--accent-deep)); box-shadow: 0 10px 30px rgba(123, 224, 90, .35); }
+  .btn.main:hover { box-shadow: 0 14px 40px rgba(123, 224, 90, .55); }
+
+  /* sections */
+  section { padding: 84px 0; }
+  .eyebrow { color: var(--accent); font-weight: 700; letter-spacing: .22em; font-size: 13px; text-transform: uppercase; }
+  h2 { font-size: clamp(30px, 5vw, 44px); letter-spacing: -.01em; margin: 8px 0 14px; }
+  .lead { color: var(--muted); max-width: 56ch; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 40px; }
+  .card { padding: 26px; border-radius: 18px; background: var(--panel); border: 1px solid rgba(255, 255, 255, .08); transition: transform .18s, border-color .18s; }
+  .card:hover { transform: translateY(-4px); border-color: var(--edge); }
+  .card .ico { width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; background: rgba(123, 224, 90, .14); margin-bottom: 14px; }
+  .card .ico svg { width: 24px; height: 24px; stroke: var(--accent); fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+  .card h3 { font-size: 19px; margin-bottom: 6px; }
+  .card p { color: var(--muted); font-size: 15px; }
+
+  /* steps */
+  .steps { counter-reset: step; display: grid; gap: 14px; margin-top: 40px; }
+  .step { display: flex; gap: 18px; align-items: flex-start; padding: 22px 24px; border-radius: 16px; background: var(--panel); border: 1px solid rgba(255, 255, 255, .08); }
+  .step::before { counter-increment: step; content: counter(step); flex: none; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; color: #081c0a; background: linear-gradient(var(--accent), var(--accent-deep)); }
+  .step h3 { font-size: 17px; margin-bottom: 2px; }
+  .step p { color: var(--muted); font-size: 15px; }
+
+  .band { margin: 0 auto; max-width: 900px; text-align: center; padding: 60px 30px; border-radius: 24px; background: linear-gradient(135deg, rgba(123, 224, 90, .16), rgba(16, 36, 20, .6)); border: 1px solid var(--edge); }
+  .band h2 { margin-bottom: 12px; }
+
+  footer { border-top: 1px solid rgba(123, 224, 90, .14); padding: 40px 0; color: var(--muted); font-size: 14px; }
+  footer .wrap { display: flex; gap: 10px 26px; flex-wrap: wrap; align-items: center; }
+  footer a { color: var(--muted); }
+  footer .sep { margin-left: auto; }
+  .note { font-size: 12.5px; opacity: .72; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap bar">
+    <img src="logo.png" alt="">
+    <b>Broccoli&nbsp;Client</b>
+    <nav>
+      <a href="#features">Features</a>
+      <a href="#get">Get it</a>
+      <a href="#about">About</a>
+      <a class="cta" href="#get">Play</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="bg"></div>
+  <div class="inner">
+    <img src="logo.png" alt="Broccoli Client logo">
+    <h1>Broccoli <span>Client</span></h1>
+    <p>A fast, green Minecraft client built for Unseen SMP.</p>
+    <div class="buttons">
+      <a class="btn main" href="#get">Get Broccoli Client</a>
+      <a class="btn" href="#features">See features</a>
+    </div>
+  </div>
+</div>
+
+<section id="features" class="wrap">
+  <div class="eyebrow">What's inside</div>
+  <h2>Everything, in green.</h2>
+  <p class="lead">Broccoli Client runs Minecraft in your browser and on your desktop, with a fresh look and modules built for the servers you actually play.</p>
+  <div class="grid">
+    <div class="card">
+      <div class="ico"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg></div>
+      <h3>Fresh green GUI</h3>
+      <p>A redesigned modules menu with a sidebar, logo card, smooth scrolling and an animated gradient background.</p>
+    </div>
+    <div class="card">
+      <div class="ico"><svg viewBox="0 0 24 24"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg></div>
+      <h3>Price Book</h3>
+      <p>Reads item sell prices on economy servers and shows how much to sell for a million, with change alerts and farm tips.</p>
+    </div>
+    <div class="card">
+      <div class="ico"><svg viewBox="0 0 24 24"><path d="M14 4l-8 9h5l-1 7 8-9h-5z"/></svg></div>
+      <h3>Bridging</h3>
+      <p>Reach-around block placement for faster bridging, for servers that allow it.</p>
+    </div>
+    <div class="card">
+      <div class="ico"><svg viewBox="0 0 24 24"><path d="M9 18V6l10-2v12"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg></div>
+      <h3>Built-in music</h3>
+      <p>Bloom on the menus and Memory Reboot in game, always looping, baked into every build.</p>
+    </div>
+    <div class="card">
+      <div class="ico"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h7l-1 8 10-12h-7z"/></svg></div>
+      <h3>Fast &amp; smooth</h3>
+      <p>Tuned for quick chunk loading and the smoothest frames the build can give.</p>
+    </div>
+    <div class="card">
+      <div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12v9"/><path d="M20 7.5L12 12 4 7.5"/></svg></div>
+      <h3>One server, ready</h3>
+      <p>Unseen SMP is set up and ready to join the moment you launch.</p>
+    </div>
+  </div>
+</section>
+
+<section id="get" class="wrap">
+  <div class="eyebrow">Get started</div>
+  <h2>Up and running, free.</h2>
+  <p class="lead">Broccoli Client runs on your own PC. The Lettuce Launcher sets everything up and keeps it updated for you.</p>
+  <div class="steps">
+    <div class="step"><div><h3>Get the Lettuce Launcher</h3><p>The launcher installs Broccoli Client and keeps it on the latest version.</p></div></div>
+    <div class="step"><div><h3>Press Install, then Play</h3><p>It downloads what it needs and builds the client. The first run takes a few minutes.</p></div></div>
+    <div class="step"><div><h3>Join Unseen SMP</h3><p>It's already in your server list. Hop in and play.</p></div></div>
+  </div>
+  <p class="note">You need to own Minecraft: Java Edition to play. Broccoli Client is for your own use.</p>
+  <div style="margin-top:28px" class="buttons">
+    <a class="btn main" href="REPLACE_LAUNCHER_LINK">Download the launcher</a>
+    <a class="btn" href="REPLACE_HUB_LINK">Visit the hub</a>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="band">
+      <div class="eyebrow">The hub</div>
+      <h2>Updates, posts &amp; more</h2>
+      <p class="lead" style="margin:0 auto 24px">News, releases and community posts all live in one place, from LettuceManfr.</p>
+      <a class="btn main" href="REPLACE_HUB_LINK">Open the Lettuce hub</a>
+    </div>
+  </div>
+</section>
+
+<section id="about" class="wrap">
+  <div class="eyebrow">About</div>
+  <h2>Made by LettuceManfr</h2>
+  <p class="lead">Broccoli Client is a modified build of the open-source Incari Client, reskinned and tuned by LettuceManfr. It's free software under the GNU General Public License v3, and it keeps the original Incari Client contributors in its credits.</p>
+</section>
+
+<footer>
+  <div class="wrap">
+    <img src="logo.png" alt="" style="width:26px;height:26px;image-rendering:pixelated">
+    <span>Broccoli Client — by LettuceManfr</span>
+    <span class="sep"></span>
+    <a href="REPLACE_SOURCE_LINK">Source</a>
+    <a href="REPLACE_HUB_LINK">Hub</a>
+    <span>GPL-3.0 · a modified build of Incari Client</span>
+  </div>
+</footer>
+
+</body>
+</html>
